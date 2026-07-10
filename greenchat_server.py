@@ -4,7 +4,6 @@ The application provides user registration, authentication, password changes,
 private text and file messaging, mutual-conversation filtering, unread counts,
 and readable TXT transcript export. SQLite3 stores all application data.
 """
-
 import os
 import secrets
 import sqlite3
@@ -12,7 +11,6 @@ import uuid
 from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
-
 from flask import (
     Flask,
     abort,
@@ -28,22 +26,18 @@ from flask import (
 from flask_bootstrap import Bootstrap5
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
-
 # ---------------------------------------------------------------------------
 # Application configuration
 # ---------------------------------------------------------------------------
-
 BASE_DIRECTORY = Path(__file__).resolve().parent
 DATABASE_PATH = BASE_DIRECTORY / "chat.db"
 UPLOAD_DIRECTORY = BASE_DIRECTORY / "uploads"
 UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)
-
 MAX_UPLOAD_SIZE = 4 * 1024 * 1024 * 1024
 MAX_MESSAGE_LENGTH = 5000
 USERNAME_MIN_LENGTH = 3
 USERNAME_MAX_LENGTH = 32
 PASSWORD_HASH_METHOD = "pbkdf2:sha256:600000"
-
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.environ.get("CHAT_SECRET_KEY", secrets.token_hex(32)),
@@ -52,12 +46,9 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
 )
 bootstrap = Bootstrap5(app)
-
-
 # ---------------------------------------------------------------------------
 # Database lifecycle
 # ---------------------------------------------------------------------------
-
 def get_database_connection():
     """Return the SQLite connection for the current request."""
     if "database" not in g:
@@ -67,16 +58,12 @@ def get_database_connection():
         connection.execute("PRAGMA journal_mode = WAL")
         g.database = connection
     return g.database
-
-
 @app.teardown_appcontext
 def close_database_connection(exception):
     """Close the request-scoped SQLite connection."""
     connection = g.pop("database", None)
     if connection is not None:
         connection.close()
-
-
 def initialize_database():
     """Create the required tables and indexes when they do not exist."""
     connection = sqlite3.connect(DATABASE_PATH)
@@ -126,17 +113,12 @@ def initialize_database():
     )
     connection.commit()
     connection.close()
-
-
 # ---------------------------------------------------------------------------
 # Authentication, validation, and shared helpers
 # ---------------------------------------------------------------------------
-
 def get_current_utc_timestamp():
     """Return the current UTC time in ISO 8601 format."""
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
-
-
 def login_required(view_function):
     """Require an authenticated session for a view."""
     @wraps(view_function)
@@ -147,8 +129,6 @@ def login_required(view_function):
             return redirect(url_for("login", next=request.path))
         return view_function(*args, **kwargs)
     return wrapped_view
-
-
 def get_current_user():
     """Return the currently authenticated user row."""
     user_id = session.get("user_id")
@@ -158,15 +138,12 @@ def get_current_user():
         "SELECT id, username, created_at FROM users WHERE id = ?",
         (user_id,),
     ).fetchone()
-
-
 def find_user_by_username(username):
     """Find a user by username using a case-insensitive lookup."""
     return get_database_connection().execute(
         "SELECT id, username, created_at FROM users WHERE username = ? COLLATE NOCASE",
         (username,),
     ).fetchone()
-
 
 def get_or_create_csrf_token():
     """Return the session CSRF token, creating one when required."""
@@ -176,14 +153,12 @@ def get_or_create_csrf_token():
         session["csrf_token"] = token
     return token
 
-
 def validate_csrf_token():
     """Reject a state-changing request with an invalid CSRF token."""
     submitted_token = request.headers.get("X-CSRF-Token") or request.form.get("csrf_token")
     stored_token = session.get("csrf_token")
     if not submitted_token or not stored_token or not secrets.compare_digest(submitted_token, stored_token):
         abort(403, description="Invalid CSRF token.")
-
 
 def validate_username(username):
     """Validate a username and return an error message when invalid."""
@@ -205,8 +180,6 @@ def has_mutual_conversation(first_user_id, second_user_id):
         (first_user_id, second_user_id, second_user_id, first_user_id),
     ).fetchone()
     return bool(result["first_to_second"] and result["second_to_first"])
-
-
 def update_conversation_read_position(user_id, other_user_id):
     """Mark all messages received from another user as read."""
     latest_message_id = get_database_connection().execute(
@@ -405,8 +378,6 @@ def conversations():
         ),
     ).fetchall()
     return render_template("conversations.html", conversations=conversation_rows)
-
-
 @app.get("/users")
 @login_required
 def users():
@@ -421,10 +392,8 @@ def users():
     user_rows = get_database_connection().execute(sql, tuple(parameters)).fetchall()
     return render_template("users.html", users=user_rows, query=search_query)
 
-
 def calculate_longest_common_subsequence_length(first_value, second_value):
     """Calculate a case-insensitive LCS score using two rolling rows.
-
     Keeping only the current and previous rows limits memory use while still
     producing the same longest-common-subsequence length.
     """
@@ -442,8 +411,6 @@ def calculate_longest_common_subsequence_length(first_value, second_value):
                 current_row.append(max(previous_row[column_index], current_row[-1]))
         previous_row = current_row
     return previous_row[-1]
-
-
 @app.get("/api/users/search")
 @login_required
 def api_user_search():
@@ -453,7 +420,6 @@ def api_user_search():
         "SELECT username FROM users WHERE id != ? ORDER BY username COLLATE NOCASE",
         (signed_in_user["id"],),
     ).fetchall()
-
     # Empty queries provide a short alphabetical list. Non-empty queries are
     # ranked by LCS length, match density, username length, and alphabetically.
     if not search_query:
@@ -470,14 +436,10 @@ def api_user_search():
             scored_users.append((username, lcs_length, density))
         scored_users.sort(key=lambda item: (-item[1], -item[2], len(item[0]), item[0].casefold()))
         results = [item[0] for item in scored_users[:20]]
-
     return jsonify(ok=True, users=results)
-
-
 # ---------------------------------------------------------------------------
 # Chat messages, file transfer, and transcript export
 # ---------------------------------------------------------------------------
-
 @app.get("/chat/<username>")
 @login_required
 def chat(username):
@@ -495,7 +457,6 @@ def chat(username):
         max_upload_bytes=MAX_UPLOAD_SIZE,
         max_upload_label="4 GiB",
     )
-
 
 @app.get("/api/chat/<username>/messages")
 @login_required
@@ -535,7 +496,6 @@ def api_messages(username):
         mutual=has_mutual_conversation(signed_in_user["id"], other_user["id"]),
     )
 
-
 @app.post("/api/chat/<username>/send")
 @login_required
 def api_send(username):
@@ -546,14 +506,12 @@ def api_send(username):
         return jsonify(ok=False, error="User not found."), 404
     if other_user["id"] == signed_in_user["id"]:
         return jsonify(ok=False, error="You cannot message yourself."), 400
-
     # Preserve the submitted message exactly, including indentation, tabs,
     # and line breaks. Stripping is used only to determine whether it is empty.
     original_message_text = request.form.get("message", "")
     uploaded_file = request.files.get("file")
     if len(original_message_text) > MAX_MESSAGE_LENGTH:
         return jsonify(ok=False, error=f"Message exceeds {MAX_MESSAGE_LENGTH} characters."), 400
-
     stored_file_name = None
     original_file_name = None
     file_size = None
@@ -569,10 +527,8 @@ def api_send(username):
         if file_size > MAX_UPLOAD_SIZE:
             destination.unlink(missing_ok=True)
             return jsonify(ok=False, error="File exceeds the 4 GiB upload limit."), 413
-
     if not original_message_text.strip() and stored_file_name is None:
         return jsonify(ok=False, error="Enter a message or select a file."), 400
-
     message_text = original_message_text if original_message_text.strip() else None
     try:
         cursor = get_database_connection().execute(
@@ -592,14 +548,11 @@ def api_send(username):
         if stored_file_name:
             (UPLOAD_DIRECTORY / stored_file_name).unlink(missing_ok=True)
         raise
-
     return jsonify(
         ok=True,
         message_id=cursor.lastrowid,
         mutual=has_mutual_conversation(signed_in_user["id"], other_user["id"]),
     )
-
-
 @app.get("/files/<int:message_id>")
 @login_required
 def download_file(message_id):
@@ -640,7 +593,6 @@ def export_chat(username):
         """,
         (signed_in_user["id"], other_user["id"], other_user["id"], signed_in_user["id"]),
     ).fetchall()
-
     separator = "=" * 88
     message_separator = "-" * 88
     lines = [
@@ -688,33 +640,24 @@ def export_chat(username):
     )
     response.call_on_close(lambda: transcript_path.unlink(missing_ok=True))
     return response
-
-
 # ---------------------------------------------------------------------------
 # Error handlers and development entry point
 # ---------------------------------------------------------------------------
-
 @app.errorhandler(413)
 def upload_too_large(error):
     if request.path.startswith("/api/"):
         return jsonify(ok=False, error="File exceeds the 4 GiB upload limit."), 413
     return render_template("error.html", code=413, message="The uploaded file exceeds the 4 GiB limit."), 413
-
-
 @app.errorhandler(403)
 def forbidden(error):
     if request.path.startswith("/api/"):
         return jsonify(ok=False, error="Forbidden."), 403
     return render_template("error.html", code=403, message=error.description), 403
-
-
 @app.errorhandler(404)
 def not_found(error):
     if request.path.startswith("/api/"):
         return jsonify(ok=False, error="Not found."), 404
     return render_template("error.html", code=404, message=error.description), 404
-
-
 if __name__ == "__main__":
     initialize_database()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True, ssl_context="adhoc")
