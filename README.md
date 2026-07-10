@@ -217,7 +217,7 @@ The standalone edition does not use the `templates` or `static` directories. It 
 ### Linux and macOS
 
 ```bash
-git clone https://github.com/aaa/GreenChat.git
+git clone https://github.com/wangyifan349/GreenChat.git
 cd GreenChat
 python3 -m pip install --upgrade pip
 python3 -m pip install Flask
@@ -228,7 +228,7 @@ python3 greenchat_standalone.py
 ### Windows PowerShell
 
 ```powershell
-git clone https://github.com/aaa/GreenChat.git
+git clone https://github.com/wangyifan349/GreenChat.git
 cd GreenChat
 python -m pip install --upgrade pip
 python -m pip install Flask
