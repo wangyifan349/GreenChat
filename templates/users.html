@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Find users | GreenChat{% endblock %}
+{% block content %}
+<!-- User discovery page; the original user grid remains visible. -->
+<main class="container-fluid app-container py-4">
+    <div class="page-heading mb-4">
+        <h1 class="h3 mb-1">Find users</h1>
+        <p class="text-muted mb-0">Open a profile to start or reply to a private conversation.</p>
+    </div>
+    <!-- Existing search form with an additional live suggestion menu. -->
+    <div class="live-user-search-wrapper mb-4">
+        <form class="search-bar" method="get" autocomplete="off">
+            <input id="live-user-search-input" class="form-control form-control-lg" type="search" name="q" value="{{ query }}" placeholder="Search username" aria-autocomplete="list" aria-controls="live-user-search-menu" aria-expanded="false">
+            <button class="btn btn-success px-4" type="submit">Search</button>
+        </form>
+        <div id="live-user-search-menu" class="live-user-search-menu shadow-sm" role="listbox" hidden></div>
+    </div>
+    <!-- Complete server-rendered user list. -->
+    <div class="user-grid">
+        {% for user in users %}
+        <a class="user-card shadow-sm" href="{{ url_for('chat', username=user.username) }}">
+            <div class="avatar avatar-large">{{ user.username[0]|upper }}</div>
+            <div>
+                <strong>{{ user.username }}</strong>
+                <div class="text-muted small">Open private chat</div>
+            </div>
+        </a>
+        {% else %}
+        <div class="empty-state w-100"><p class="mb-0">No matching users.</p></div>
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}

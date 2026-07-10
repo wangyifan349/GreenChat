@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ other_user.username }} | GreenChat{% endblock %}
+{% block body_class %}chat-page{% endblock %}
+{% block content %}
+<!-- Full-size private conversation workspace. -->
+<main class="chat-layout">
+    <section class="chat-window shadow-sm">
+        <!-- Compact conversation header. -->
+        <header class="chat-header">
+            <a class="chat-back" href="{{ url_for('conversations') }}" aria-label="Return to messages">&larr;</a>
+            <div class="flex-grow-1 chat-partner-name">{{ other_user.username }}</div>
+            <a class="btn btn-sm btn-outline-success" href="{{ url_for('export_chat', username=other_user.username) }}">Export TXT</a>
+        </header>
+        <!-- AJAX messages are inserted into this scrollable region. -->
+        <div id="message-list" class="message-list" aria-live="polite">
+            <div id="loading-state" class="text-center text-muted py-4">Loading messages...</div>
+        </div>
+        <div id="error-box" class="alert alert-danger mx-3 mb-2 d-none"></div>
+        <!-- Message composer with optional file attachment. -->
+        <form id="message-form" class="message-composer">
+            <div id="file-preview" class="file-preview d-none">
+                <span id="file-name"></span>
+                <button id="remove-file" class="btn-close" type="button" aria-label="Remove file"></button>
+            </div>
+            <div class="composer-row">
+                <label class="attachment-button" for="file-input" title="Attach a file">+</label>
+                <input id="file-input" type="file" hidden>
+                <textarea id="message-input" class="form-control" rows="1" maxlength="5000" placeholder="Type a message"></textarea>
+                <button id="send-button" class="send-button" type="submit" aria-label="Send message">Send</button>
+            </div>
+        </form>
+    </section>
+</main>
+{% endblock %}
+{% block scripts %}
+<!-- Server-provided values consumed by the chat JavaScript module. -->
+<script>
+window.CHAT_CONFIG = {
+    username: {{ other_user.username|tojson }},
+    csrfToken: {{ csrf_token()|tojson }},
+    maxUploadBytes: {{ max_upload_bytes }}
+};
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

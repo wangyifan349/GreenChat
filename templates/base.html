@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Shared metadata, Bootstrap assets, and application styles. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}GreenChat{% endblock %}</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<!-- Authenticated application navigation. -->
+{% if current_user() %}
+<nav class="navbar navbar-expand-lg app-navbar">
+    <div class="container-fluid app-container">
+        <a class="navbar-brand" href="{{ url_for('conversations') }}">
+            <span class="brand-mark">G</span>
+            <span>GreenChat</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation" aria-controls="mainNavigation" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNavigation">
+            <div class="navbar-nav me-auto mt-3 mt-lg-0">
+                <a class="nav-link {% if request.endpoint == 'conversations' %}active{% endif %}" href="{{ url_for('conversations') }}">Messages</a>
+                <a class="nav-link {% if request.endpoint == 'users' %}active{% endif %}" href="{{ url_for('users') }}">Find users</a>
+            </div>
+            <div class="account-area mt-3 mt-lg-0">
+                <div class="account-avatar">{{ current_user().username[0]|upper }}</div>
+                <div class="account-name">{{ current_user().username }}</div>
+                <a class="btn btn-sm btn-light" href="{{ url_for('change_password') }}">Change password</a>
+                <form method="post" action="{{ url_for('logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-dark" type="submit">Log out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endif %}
+<!-- Page-specific content supplied by child templates. -->
+{% block content %}{% endblock %}
+<!-- Shared Bootstrap scripts and page-specific JavaScript. -->
+{{ bootstrap.load_js() }}
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} | GreenChat{% endblock %}
+{% block content %}
+<!-- Shared HTTP error page. -->
+<div class="container py-5 text-center">
+    <div class="display-4 fw-bold">{{ code }}</div>
+    <p class="text-muted mt-3">{{ message }}</p>
+    <a class="btn btn-success" href="{{ url_for('index') }}">Return home</a>
+</div>
+{% endblock %}

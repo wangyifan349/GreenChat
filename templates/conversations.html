@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Messages | GreenChat{% endblock %}
+{% block content %}
+<!-- Mutual conversation list. -->
+<main class="container-fluid app-container py-4">
+    <div class="page-heading d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Messages</h1>
+            <p class="text-muted mb-0">Only conversations in which both users have replied appear here.</p>
+        </div>
+        <a class="btn btn-success" href="{{ url_for('users') }}">Start a chat</a>
+    </div>
+    <!-- Each row opens the associated private chat. -->
+    <div class="conversation-panel shadow-sm">
+        {% for conversation in conversations %}
+        <div class="conversation-item" data-chat-url="{{ url_for('chat', username=conversation.username) }}" data-export-url="{{ url_for('export_chat', username=conversation.username) }}" tabindex="0" role="link">
+            <div class="avatar">{{ conversation.username[0]|upper }}</div>
+            <div class="conversation-main">
+                <div class="d-flex justify-content-between gap-3">
+                    <strong>{{ conversation.username }}</strong>
+                    <time class="conversation-time" data-utc="{{ conversation.created_at }}"></time>
+                </div>
+                <div class="conversation-preview">
+                    {% if conversation.sender_id == current_user().id %}<span class="text-muted">You: </span>{% endif %}
+                    {% if conversation.message_text %}{{ conversation.message_text }}{% else %}Attachment: {{ conversation.original_file_name }}{% endif %}
+                </div>
+            </div>
+            {% if conversation.unread_count %}<span class="unread-badge">{{ conversation.unread_count }}</span>{% endif %}
+            <span class="conversation-arrow">&rsaquo;</span>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">Chat</div>
+            <h2 class="h5">No mutual conversations yet</h2>
+            <p>One-sided messages remain hidden. A conversation appears only after both users have sent at least one message.</p>
+            <a class="btn btn-success" href="{{ url_for('users') }}">Find a user</a>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+<!-- Custom right-click actions for a conversation row. -->
+<div id="conversation-context-menu" class="context-menu" hidden>
+    <button type="button" data-action="open">Open chat</button>
+    <button type="button" data-action="export">Export chat transcript</button>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/conversations.js') }}"></script>
+{% endblock %}
