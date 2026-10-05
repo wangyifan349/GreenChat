@@ -280,7 +280,7 @@ GreenChat 在 SQLite3 中存储以下数据：
 如果 GreenChat 对你有帮助，可以通过自愿的加密货币捐赠支持项目继续开发。
 
 ```text
-Bitcoin (BTC): bc1qxqfhumpqtnxrznkx9r4xsp8m6zsedtgusjns7p
+Bitcoin (BTC): bc1qwhzzk5tx07592vkf97rt8x8v0zdntad8lexnrgv3gdmecg8pfmhqzceedl
 Ethereum (ETH): 0x2d92f9e4d8ac7effa9cd7cd5eccd364cac7c201b
 ```
 

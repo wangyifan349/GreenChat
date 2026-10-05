@@ -281,7 +281,7 @@ Uploaded file contents are stored separately in `uploads`. A complete backup mus
 If GreenChat is useful to you, voluntary cryptocurrency donations can support continued development. The addresses below are placeholders and should be replaced by the project owner before publication.
 
 ```text
-Bitcoin (BTC): bc1qxqfhumpqtnxrznkx9r4xsp8m6zsedtgusjns7p
+Bitcoin (BTC): bc1qwhzzk5tx07592vkf97rt8x8v0zdntad8lexnrgv3gdmecg8pfmhqzceedl
 Ethereum (ETH): 0x2d92f9e4d8ac7effa9cd7cd5eccd364cac7c201b
 ```
 
